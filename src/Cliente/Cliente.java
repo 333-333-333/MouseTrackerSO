@@ -114,7 +114,7 @@ public class Cliente {
     private void enviarRáfagaPaquetes(int segundos) throws IOException,
             InterruptedException {
         try {
-            for (float ms = 0 ; ms <=  segundos; ms += 0.1) {
+            for (float ms = 0 ; ms <=  segundos; ms += 0.2) {
                 Point ubicaciónPuntero = obtenerUbicacionPuntero();
 
                 double[] coordenadasPuntero = extraerCoordenadas(ubicaciónPuntero);
@@ -125,7 +125,7 @@ public class Cliente {
                 generarMensaje(datosPaquete);
                 enviarMensaje();
 
-                sleep(100);
+                sleep(200);
             }
         } catch (InterruptedException e) {
             throw new InterruptedException("Algo interrumpió el proceso.");
