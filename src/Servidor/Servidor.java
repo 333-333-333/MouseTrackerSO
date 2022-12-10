@@ -1,7 +1,5 @@
 package Servidor;
 
-import Utillities.Validaciones;
-
 import java.awt.*;
 import java.io.IOException;
 import java.net.*;
@@ -11,22 +9,20 @@ import static java.lang.Thread.sleep;
 public class Servidor {
 
     private DatagramSocket Socket;
-    private DatagramPacket Packet;
+    private DatagramPacket DatagramaEnviado, DatagramaRecibido;
     private InetAddress Dirección;
-    private String Mensaje;
-    private byte[] MensajeBytes;
-    private int Puerto;
+    private String MsjEnviado, MsjRecibido;
+    private byte[] MsjEnviadoBytes, MsjRecibidoBytes;
+    private int PuertoEntrada, PuertoSalida;
 
 
     /**
-     * Envía los datos al servidor, y pide la cantidad de segundos para
-     * enviarlos.
+     * Inicializa la instancia del objeto desde su respectivo launcher.
      */
     public void iniciar() {
         try {
-            conectar();
-            enviarRáfagaPaquetes();
-            System.out.println("[Fin de la transmisión]");
+            inicializarAtributos();
+            ejecutar();
         } catch (Exception e) {
             System.err.println(e.getLocalizedMessage());
         }
@@ -38,11 +34,18 @@ public class Servidor {
      * @throws SocketException
      * @throws UnknownHostException
      */
-    private void conectar() throws SocketException, UnknownHostException {
+    private void inicializarAtributos() throws SocketException,
+                                               UnknownHostException {
         try {
-            this.Socket = new DatagramSocket();
+            this.PuertoEntrada = 54321;
+            this.PuertoSalida = 51234;
+
+            this.Socket = new DatagramSocket(this.PuertoEntrada);
             this.Dirección = InetAddress.getByName("localhost");
-            this.Puerto = 54321;
+
+            this.MsjRecibidoBytes = new byte[256];
+            this.DatagramaRecibido = new DatagramPacket(this.MsjRecibidoBytes,256);
+
             System.out.println("Conectado!");
         } catch (SocketException e) {
             throw new SocketException("El socket no es válido");
@@ -51,6 +54,30 @@ public class Servidor {
         }
     }
 
+    /**
+     * Inicia el ciclo de ejecución para la clase.
+     */
+    private void ejecutar() {
+        try{
+            recibirDatagrama();
+            int segundos = Integer.parseInt(this.MsjRecibido);
+            enviarRáfagaPaquetes(segundos);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        } finally {
+            ejecutar();
+        }
+    }
+
+    /**
+     * Recibe datagramas de la clase 'Cliente'
+     * @throws IOException
+     */
+    private void recibirDatagrama() throws IOException {
+        System.out.println("Esperando datagrama...");
+        this.Socket.receive(this.DatagramaRecibido);
+        this.MsjRecibido = new String(this.MsjRecibidoBytes).trim();
+    }
 
 
     /**
@@ -59,13 +86,14 @@ public class Servidor {
      * @throws IOException
      * @throws InterruptedException
      */
-    private void enviarRáfagaPaquetes() throws IOException,
+    private void enviarRáfagaPaquetes(int segundos) throws IOException,
             InterruptedException {
-        int contadorMensaje = 0;
+        int ciclos = segundos * 5;
+        int contador = 0;
         try {
-            while(true) {
-                if (contadorMensaje % 50 == 0) {
-                    System.out.println("Aún se envían los datos del puntero.");
+            while(contador <= ciclos) {
+                if (contador % 50 == 0) {
+                    System.out.println("Se envían los datos del puntero.");
                 }
 
                 Point ubicaciónPuntero = obtenerUbicacionPuntero();
@@ -79,7 +107,7 @@ public class Servidor {
                 enviarMensaje();
 
                 sleep(200);
-                contadorMensaje += 1;
+                contador += 1;
             }
         } catch (InterruptedException e) {
             throw new InterruptedException("Algo interrumpió el proceso.");
@@ -94,14 +122,14 @@ public class Servidor {
      */
     private void enviarMensaje() throws IOException {
         try {
-            if (this.MensajeBytes.length > 256) {
+            if (this.MsjEnviadoBytes.length > 256) {
                 throw new IOException("El paquete es de más de 256 bytes.");
             }
-            this.Packet = new DatagramPacket(this.MensajeBytes,
-                    this.MensajeBytes.length,
+            this.DatagramaEnviado = new DatagramPacket(this.MsjEnviadoBytes,
+                    this.MsjEnviadoBytes.length,
                     this.Dirección,
-                    this.Puerto);
-            this.Socket.send(this.Packet);
+                    this.PuertoSalida);
+            this.Socket.send(this.DatagramaEnviado);
         } catch (Exception e) {
             throw new IOException("Error al enviar el paquete.");
         }
@@ -114,8 +142,8 @@ public class Servidor {
      * @param mensaje
      */
     private void generarMensaje(String mensaje) {
-        this.Mensaje = mensaje;
-        this.MensajeBytes = mensaje.getBytes();
+        this.MsjEnviado = mensaje;
+        this.MsjEnviadoBytes = mensaje.getBytes();
     }
 
     /**
