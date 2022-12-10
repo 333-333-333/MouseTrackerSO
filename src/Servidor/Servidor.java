@@ -1,85 +1,153 @@
 package Servidor;
 
+import Utillities.Validaciones;
+
+import java.awt.*;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.net.*;
+
+import static java.lang.Thread.sleep;
 
 public class Servidor {
 
-    private byte[] MsjRecibidoBytes;
     private DatagramSocket Socket;
-    private DatagramPacket PaqueteRecibido;
-    private String MsjRecibido;
+    private DatagramPacket Packet;
+    private InetAddress Dirección;
+    private String Mensaje;
+    private byte[] MensajeBytes;
+    private int Puerto;
 
 
     /**
-     * Ejecuta el programa de forma constante, y actúa en caso de que llegue
-     * un paquete.
-     * En caso de excepción, el programa se detiene y muestra los datos
-     * asociados al error.
+     * Envía los datos al servidor, y pide la cantidad de segundos para
+     * enviarlos.
      */
-    public void ejecutar() {
+    public void iniciar() {
         try {
-            inicializarDatos();
-            while (true) {
-                System.out.println("\nEsperando cliente...");
-                recibirPaquete();
-                procesarMensaje();
-            }
+            conectar();
+            enviarRáfagaPaquetes();
+            System.out.println("[Fin de la transmisión]");
         } catch (Exception e) {
-            System.err.println(e.getClass());
-            System.err.println(e.getMessage());
+            System.err.println(e.getLocalizedMessage());
+        }
+    }
+
+
+    /**
+     * Establece parámetros de conexión para el programa.
+     * @throws SocketException
+     * @throws UnknownHostException
+     */
+    private void conectar() throws SocketException, UnknownHostException {
+        try {
+            this.Socket = new DatagramSocket();
+            this.Dirección = InetAddress.getByName("localhost");
+            this.Puerto = 54321;
+            System.out.println("Conectado!");
+        } catch (SocketException e) {
+            throw new SocketException("El socket no es válido");
+        } catch (UnknownHostException e) {
+            throw new UnknownHostException("Host desconocido");
+        }
+    }
+
+
+
+    /**
+     * Envía una ráfaga de mensajes cada 0.2 segundos durante la cantidad de
+     * segundos ingresadas como parámetro.
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private void enviarRáfagaPaquetes() throws IOException,
+            InterruptedException {
+        int contadorMensaje = 0;
+        try {
+            while(true) {
+                if (contadorMensaje % 50 == 0) {
+                    System.out.println("Aún se envían los datos del puntero.");
+                }
+
+                Point ubicaciónPuntero = obtenerUbicacionPuntero();
+
+                double[] coordenadasPuntero = extraerCoordenadas(ubicaciónPuntero);
+                double x = coordenadasPuntero[0];
+                double y = coordenadasPuntero[1];
+
+                String datosPaquete = parametrizarDatos(x, y);
+                generarMensaje(datosPaquete);
+                enviarMensaje();
+
+                sleep(200);
+                contadorMensaje += 1;
+            }
+        } catch (InterruptedException e) {
+            throw new InterruptedException("Algo interrumpió el proceso.");
         }
     }
 
     /**
-     * Inicializa los datos con los cuales se trabajará.
-     * > El puerto a utilizar para cliente y servidor será el '3333'.
-     * > El largo máximo en bytes que pueden tener los mensajes es de 256.
-     * @throws SocketException
-     */
-    private void inicializarDatos() throws SocketException {
-        this.MsjRecibidoBytes = new byte[256];
-        this.Socket = new DatagramSocket(3333);
-        this.PaqueteRecibido = new DatagramPacket(this.MsjRecibidoBytes,256);
-
-    }
-
-    /**
-     * Recibe el paquete a través del socket.
+     * Envía un paquete de datagrama a la dirección localhost, y al puerto
+     * asignado en la función conectar(), el 54321
+     * .
      * @throws IOException
      */
-    private void recibirPaquete() throws IOException {
-        this.Socket.receive(this.PaqueteRecibido);
-    }
-
-    /**
-     * Pasa el mensaje a variable global y lo parametriza.
-     */
-    private void procesarMensaje() {
+    private void enviarMensaje() throws IOException {
         try {
-            this.MsjRecibido = new String(this.MsjRecibidoBytes).trim();
-            parametrizarMensaje(this.MsjRecibido);
+            if (this.MensajeBytes.length > 256) {
+                throw new IOException("El paquete es de más de 256 bytes.");
+            }
+            this.Packet = new DatagramPacket(this.MensajeBytes,
+                    this.MensajeBytes.length,
+                    this.Dirección,
+                    this.Puerto);
+            this.Socket.send(this.Packet);
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            throw new IOException("Error al enviar el paquete.");
         }
+
     }
 
     /**
-     * Desde el cliente, el formato del mensaje era 'x;y;seg', este método
-     * toma los valores, los separa, y los muestra de forma más sofisticada.
+     * Dada una string, establece los valores de las variables globales de
+     * Mensaje y su equivalente en bytes, MensajeBytes.
      * @param mensaje
-     * @throws Exception
      */
-    private void parametrizarMensaje(String mensaje) throws Exception {
-        String[] partesMensaje = mensaje.split(";");
-        if (partesMensaje.length !=3) {
-            throw new Exception("El paquete no cumple con parámetros");
-        }
-        System.out.println("\nTiempo: " + partesMensaje[2]
-                        + "\nPosición horizontal: " + partesMensaje[0]
-                        + "\nPosición vertical: " + partesMensaje[1]);
+    private void generarMensaje(String mensaje) {
+        this.Mensaje = mensaje;
+        this.MensajeBytes = mensaje.getBytes();
+    }
+
+    /**
+     * Para enviar un paquete, los datos se deben serializar, es decir, pasar
+     * los datos a String para encajar con los parámetros.
+     * @param x
+     * @param y
+     * @return
+     */
+    private String parametrizarDatos(double x, double y) {
+        return x + ";" + y + ";";
+    }
+
+    /**
+     * Dada la ubicación del puntero, extrae las coordenadas en X e Y, y
+     * las pasa a un arreglo d <double>.
+     * @param puntero
+     * @return
+     */
+    private double[] extraerCoordenadas(Point puntero) {
+        double x = puntero.getX();
+        double y = puntero.getY();
+        return new double[]{x, y};
+    }
+
+    /**
+     * Obtiene la ubicación actual del puntero (Mouse).
+     * @return
+     */
+    private Point obtenerUbicacionPuntero() {
+        PointerInfo ubicaciónPuntero = MouseInfo.getPointerInfo();
+        return ubicaciónPuntero.getLocation();
     }
 
 }
