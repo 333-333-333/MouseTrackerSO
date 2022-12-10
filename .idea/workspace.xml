@@ -4,11 +4,12 @@
     <list default="true" id="6668c673-aa1e-43e7-9d02-3f51607c67e2" name="Changes" comment="">
       <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MouseTrackerSO.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Cliente/Cliente.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Cliente/ClienteLauncher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Cliente/LauncherCliente.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Servidor/Servidor.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/Utillities/Validaciones.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -35,19 +36,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true"
   }
-}</component>
-  <component name="RunManager" selected="Application.ClienteLauncher">
-    <configuration name="ClienteLauncher" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Cliente.ClienteLauncher" />
+}]]></component>
+  <component name="RunManager" selected="Application.LauncherServidor">
+    <configuration name="LauncherCliente" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Cliente.LauncherCliente" />
       <module name="MouseTrackerSO" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Cliente.*" />
+          <option name="PATTERN" value="Servidor.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -70,8 +72,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.ClienteLauncher" />
         <item itemvalue="Application.LauncherServidor" />
+        <item itemvalue="Application.LauncherCliente" />
       </list>
     </recent_temporary>
   </component>
@@ -90,8 +92,8 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Cliente/Cliente.java</url>
-          <line>129</line>
+          <url>file://$PROJECT_DIR$/src/Servidor/Servidor.java</url>
+          <line>77</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
